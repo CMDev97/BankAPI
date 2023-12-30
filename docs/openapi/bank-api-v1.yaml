@@ -1,0 +1,237 @@
+openapi: 3.0.3
+info:
+  title: Bank API
+  description: Bank API
+  version: 1.0.0
+servers:
+  - url: 'http://localhost:8080'
+tags:
+  - name: Banking
+paths:
+
+  /api/v1.0/account/balance:
+    get:
+      operationId: accountBalance
+      tags:
+        - Banking
+      description: API for retrieving account balance
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BalanceResponse'
+        400:
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /api/v1.0/account/transactions:
+    get:
+      operationId: accountTransactions
+      tags:
+        - Banking
+      description: API for retrieving all account transactions
+      parameters:
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionsResponse'
+        400:
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+  /api/v1.0/account/money-transfer:
+    post:
+      operationId: moneyTransfer
+      tags:
+        - Banking
+      description: API for money transfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResponse'
+        400:
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+
+components:
+  schemas:
+
+    TransferRequest:
+      type: object
+      properties:
+        creditorName:
+          type: string
+          maxLength: 70
+        creditorAccountCode:
+          type: string
+        creditorBicCode:
+          type: string
+        description:
+          type: string
+          maxLength: 140
+          example: "Payment invoice 75/2017"
+        amount:
+          type: number
+          example: 800
+        currency:
+          type: string
+          example: "EUR"
+        executionDate:
+          type: string
+          format: date
+          example: "2023-12-12"
+        isUrgent:
+          type: boolean
+          default: false
+        isInstant:
+          type: boolean
+          default: false
+      required:
+        - creditorName
+        - creditorAccountCode
+        - description
+        - amount
+        - currency
+
+    TransferResponse:
+      type: object
+      properties:
+        moneyTransferId:
+          type: string
+        status:
+          type: string
+          enum:
+            - 'EXECUTED'
+            - 'BOOKED'
+            - 'WORK_IN_PROGRESS'
+            - 'CANCELLED'
+            - 'REJECTED'
+
+    BalanceResponse:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        balance:
+          type: number
+          format: float
+        availableBalance:
+          type: number
+          format: float
+        currency:
+          type: string
+
+    TransactionsResponse:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/Transaction'
+
+    Transaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        operationId:
+          type: string
+        accountingDate:
+          type: string
+          format: date
+        valueDate:
+          type: string
+          format: date
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        typeTransaction:
+          type: string
+
+    Problem:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - 'OK'
+            - 'KO'
+        description:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+
+    ErrorItem:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+
+  parameters:
+    fromDate:
+      in: query
+      name: fromDate
+      required: true
+      schema:
+        type: string
+        format: date
+      description: Start date (format YYYY-MM-DD)
+    toDate:
+      in: query
+      name: toDate
+      required: true
+      description: End date (format YYYY-MM-DD)
+      schema:
+        type: string
+        format: date
