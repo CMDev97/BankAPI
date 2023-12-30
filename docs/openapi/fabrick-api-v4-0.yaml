@@ -1,0 +1,443 @@
+openapi: 3.0.3
+info:
+  title: Fabrick API
+  description: Fabrick API
+  version: 4.0.0
+servers:
+  - url: 'http://localhost:8080'
+tags:
+  - name: BankAccounts
+  - name: PaymentsMoneyTransfer
+
+paths:
+  /api/gbs/banking/v4.0/accounts/{accountId}/balance:
+    get:
+      operationId: cashAccountBalance
+      description: API for retrieving account balance
+      tags:
+        - BankAccount
+      parameters:
+        - $ref: '#/components/parameters/accountId'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountBalanceResponse'
+        400:
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+
+
+  /api/gbs/banking/v4.0/accounts/{accountId}/transactions:
+    get:
+      operationId: cashAccountTransactions
+      description: API for retrieving account transactions
+      tags:
+        - BankAccount
+      parameters:
+        - $ref: '#/components/parameters/accountId'
+        - $ref: '#/components/parameters/fromDate'
+        - $ref: '#/components/parameters/toDate'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountTransactionsResponse'
+        400:
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+
+  /api/gbs/banking/v4.0/accounts/{accountId}/payments/money-transfers:
+    post:
+      operationId: createMoneyTransfer
+      description: API for create money transfer to accountId
+      tags:
+        - PaymentsMoneyTransfer
+      parameters:
+        - $ref: '#/components/parameters/accountId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MoneyTransferRequest'
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MoneyTransferResponse'
+        400:
+          description: Invalid input
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemResponse'
+
+components:
+  schemas:
+
+    AccountBalanceResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ModelResponse'
+      properties:
+        payload:
+          $ref: '#/components/schemas/AccountBalance'
+
+    AccountBalance:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          pattern: "yyyy-mm-dd"
+        balance:
+          type: number
+          format: float
+        availableBalance:
+          type: number
+          format: float
+        currency:
+          type: string
+
+    AccountTransactionsResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ModelResponse'
+      properties:
+        payload:
+          $ref: '#/components/schemas/AccountTransactions'
+
+    AccountTransactions:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountTransaction'
+
+    AccountTransaction:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        operationId:
+          type: string
+        accountingDate:
+          type: string
+          format: date
+          pattern: "yyyy-mm-dd"
+        valueDate:
+          type: string
+          format: date
+          pattern: "yyyy-mm-dd"
+        amount:
+          type: number
+        currency:
+          type: string
+        description:
+          type: string
+        type:
+          $ref: '#/components/schemas/TypeTransaction'
+
+    TypeTransaction:
+      type: object
+      properties:
+        enumeration:
+          type: string
+        value:
+          type: string
+
+    MoneyTransferResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ModelResponse'
+      properties:
+        payload:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/MoneyTransfer'
+
+    MoneyTransfer:
+      type: object
+      properties:
+        moneyTransferId:
+          type: string
+        status:
+          type: string
+          enum:
+            - 'EXECUTED'
+            - 'BOOKED'
+            - 'WORK_IN_PROGRESS'
+            - 'CANCELLED'
+            - 'REJECTED'
+        creditor:
+          $ref: '#/components/schemas/Creditor'
+        debtor:
+          $ref: '#/components/schemas/Creditor'
+        cro:
+          type: string
+          example: "1234566788907"
+        uri:
+          type: string
+          example: "REMITTANCE_INFORMATION"
+        trn:
+          type: string
+          example: "AJFSAD1234566788907CCSFDGTGVGV"
+        description:
+          type: string
+          example: "Description"
+        createdDatetime:
+          type: string
+          format: date
+          example: "2019-04-10T10:38:55.949+0200"
+        accountedDatetime:
+          type: string
+          format: date
+          example: "2019-04-10T10:38:56.000+0200"
+        debtorValueDate:
+          type: string
+          format: date
+          pattern: "yyyy-mm-dd"
+          example: "2019-04-10"
+        creditorValueDate:
+          type: string
+          format: date
+          pattern: "yyyy-mm-dd"
+          example: "2019-04-10"
+        amount:
+          $ref: '#/components/schemas/Amount'
+        isUrgent:
+          type: boolean
+          example: false
+        isInstant:
+          type: boolean
+          example: false
+        feeType:
+          type: string
+          example: "SHA"
+        feeAccountId:
+          type: string
+          example: "12345678"
+        hasTaxRelief:
+          type: boolean
+          example: false
+        fees:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeeItem'
+
+
+    MoneyTransferRequest:
+      type: object
+      properties:
+        creditor:
+          $ref: '#/components/schemas/Creditor'
+        executionDate:
+          type: string
+          format: date
+          x-field-extra-annotation: '@com.fasterxml.jackson.annotation.JsonFormat(shape = com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")'
+          example: "2023-12-12"
+        uri:
+          type: string
+          example: "REMITTANCE_INFORMATION"
+        description:
+          type: string
+          maxLength: 140
+          example: "Payment invoice 75/2017"
+        amount:
+          type: number
+          example: 800
+        currency:
+          type: string
+          example: "EUR"
+        isUrgent:
+          type: boolean
+          default: false
+          example: false
+        isInstant:
+          type: boolean
+          default: false
+          example: false
+      required:
+        - creditor
+        - description
+        - amount
+        - currency
+
+    Creditor:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 70
+        account:
+          $ref: '#/components/schemas/CreditorAccount'
+        address:
+          $ref: '#/components/schemas/Address'
+      required:
+        - name
+        - account
+
+    CreditorAccount:
+      type: object
+      properties:
+        accountCode:
+          type: string
+        bicCode:
+          type: string
+      required:
+        - accountCode
+
+    Address:
+      type: object
+      properties:
+        address:
+          type: string
+          maxLength: 40
+        city:
+          type: string
+        countryCode:
+          type: string
+
+    Amount:
+      type: object
+      properties:
+        debtorAmount:
+          type: number
+          example: 800
+        debtorCurrency:
+          type: string
+          example: "EUR"
+        creditorAmount:
+          type: number
+          example: 800
+        creditorCurrency:
+          type: string
+          example: "EUR"
+        creditorCurrencyDate:
+          type: string
+          format: date
+          pattern: "yyyy-mm-dd"
+          example: "2019-04-10"
+        exchangeRate:
+          type: integer
+          example: 1
+
+    FeeItem:
+      type: object
+      properties:
+        feeCode:
+          type: string
+          example: "MK001"
+        description:
+          type: string
+          example: "Money transfer execution fee"
+        amount:
+          type: number
+          example: 0.25
+        currency:
+          type: string
+          example: "EUR"
+
+    ProblemResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ModelResponse'
+      properties:
+        payload:
+          type: object
+
+    ModelResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - OK
+            - KO
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/ErrorItem'
+
+    ErrorItem:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        params:
+          type: string
+
+  parameters:
+    accountId:
+      in: path
+      name: accountId
+      required: true
+      schema:
+        type: string
+
+    fromDate:
+      in: query
+      name: fromAccountingDate
+      required: true
+      schema:
+        type: string
+        format: date
+        pattern: "yyyy-mm-dd"
+      description: Start date (format YYYY-MM-DD)
+
+    toDate:
+      in: query
+      name: toAccountingDate
+      required: true
+      description: End date (format YYYY-MM-DD)
+      schema:
+        type: string
+        format: date
+        pattern: "yyyy-mm-dd"
+
+    AuthHeader:
+      name: Auth-Schema
+      in: header
+      required: true
+      schema:
+        type: string
+
+    ApiKeyHeader:
+      name: apikey
+      in: header
+      required: true
+      schema:
+        type: string
