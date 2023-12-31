@@ -49,8 +49,25 @@ public class RestExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST.value())
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
                 .body(problem);
-
     }
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ProblemDto> handleValidationException(ValidationException ex) {
+        ProblemDto problemDto = new ProblemDto();
+
+        problemDto.setStatus(ProblemDto.StatusEnum.KO);
+        problemDto.setDescription("Validation error");
+
+        ErrorItemDto errorItemDto = new ErrorItemDto();
+        errorItemDto.setCode(ex.getCode());
+        errorItemDto.setDescription(ex.getMessage());
+
+        problemDto.addErrorsItem(errorItemDto);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDto);
+    }
+
+
     @ExceptionHandler({HttpClientErrorException.class, HttpServerErrorException.class})
     public ResponseEntity<Object> handleClientException(HttpClientErrorException ex) {
         return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
