@@ -1,9 +1,12 @@
 
 
 
-
 banking:
   client:
     base-url: https://sandbox.platfr.io
     auth-schema: S2S
     api-key: ${FABRICK_API_KEY:test}
+
+logging:
+  pattern:
+    level: "%4p [%X{traceId:-}]"
