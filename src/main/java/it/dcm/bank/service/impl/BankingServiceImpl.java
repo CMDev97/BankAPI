@@ -41,13 +41,18 @@ public class BankingServiceImpl implements BankingService {
 
     @Override
     public TransactionsResponseDto getTransactions(LocalDate from, LocalDate to) {
-        if (!DateUtility.validRange(from, to))
+        if (!DateUtility.validRange(from, to)) {
+            log.error("[{}] Range date not valid", ACCOUNT_ID);
             throw new ValidationException(RANGE_INTERVAL_NOT_VALID.getCode(), RANGE_INTERVAL_NOT_VALID.getMessage());
+        }
 
         AccountTransactionsDto responseClient = this.fabrickClient.getAllTransactions(ACCOUNT_ID, from, to);
         TransactionsResponseDto transactionsResponseDto = new TransactionsResponseDto();
 
-        if (responseClient == null || responseClient.getList() == null) return transactionsResponseDto;
+        if (responseClient == null || responseClient.getList() == null) {
+            log.info("[{}] Response is null or list of transactions is null", ACCOUNT_ID);
+            return transactionsResponseDto;
+        }
 
         List<TransactionDto> transactions = responseClient.getList()
                 .parallelStream()
@@ -62,21 +67,30 @@ public class BankingServiceImpl implements BankingService {
     public TransferResponseDto createMoneyTransefer(TransferRequestDto transferRequest) {
 
         executionDateSetting(transferRequest);
-
         MoneyTransferRequestDto moneyTransferRequest = transferMapper.toClientRequest(transferRequest);
-
+        log.debug("[{}] Mapped input transfer request", ACCOUNT_ID);
         MoneyTransferDto transferResponse = this.fabrickClient.createMoneyTransfer(ACCOUNT_ID, moneyTransferRequest);
         return transferMapper.mapClientResponse(transferResponse);
     }
 
     private void executionDateSetting(TransferRequestDto transferRequest) {
-        if (transferRequest.getIsInstant()) transferRequest.setExecutionDate(LocalDate.now());
+        log.info("[{}] Setting execution date", ACCOUNT_ID);
+        if (transferRequest.getIsInstant()) {
+            log.info("[{}] IsInstant is true, executionDate is not required", ACCOUNT_ID);
+            transferRequest.setExecutionDate(LocalDate.now());
+            return;
+        }
 
-        if (transferRequest.getExecutionDate() == null)
+        if (transferRequest.getExecutionDate() == null) {
+            log.error("[{}] IsInstant is false, executionDate is required but it is null", ACCOUNT_ID);
             throw new ValidationException(INPUT_MISSING_DATA.getCode(), INPUT_MISSING_DATA.getMessage().concat(" execution date is null"));
+        }
 
-        if (transferRequest.getExecutionDate().isBefore(LocalDate.now()))
+
+        if (transferRequest.getExecutionDate().isBefore(LocalDate.now())) {
+            log.error("[{}] IsInstant is false, executionDate is required but it is before now", ACCOUNT_ID);
             throw new ValidationException(INVALID_DATE.getCode(), INVALID_DATE.getMessage());
+        }
 
     }
 }
