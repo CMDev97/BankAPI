@@ -196,6 +196,81 @@ class BankingControllerIntegrationTest {
         verify(bankingService).createMoneyTransefer(any(TransferRequestDto.class));
     }
 
+
+    @Test
+    void moneyTransfer_ShouldReturnProblem400_WhenMissingRequiredField() throws Exception {
+        mockMvc.perform(post("/api/v1.0/account/money-transfer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "creditorName": "John Doe",
+                                "creditorAccountCode": null,
+                                "description": "Payment invoice 75/2017",
+                                "amount": 800,
+                                "currency": "EUR",
+                                "creditorBicCode": "SELBIT2BXXX",
+                                "executionDate": "2023-12-12",
+                                "isUrgent": false,
+                                "isInstant": false
+                            }
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("""
+                    {
+                        status: "KO",
+                        description: "Validation error",
+                        errors: [{
+                            code: "INPUT_NOT_VALID",
+                            description: "creditorAccountCode : must not be null"
+                        }]
+                    }
+                """));
+
+        verify(bankingService, timeout(500).times(0)).createMoneyTransefer(any(TransferRequestDto.class));
+    }
+
+    @Test
+    void moneyTransfer_ShouldReturnProblem400_WhenMissingRequiredFields() throws Exception {
+        mockMvc.perform(post("/api/v1.0/account/money-transfer")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "creditorName": "John Doe",
+                                "creditorAccountCode": null,
+                                "description": "Payment invoice 75/2017",
+                                "amount": null,
+                                "currency": null,
+                                "creditorBicCode": "SELBIT2BXXX",
+                                "executionDate": "2023-12-12",
+                                "isUrgent": false,
+                                "isInstant": false
+                            }
+                        """))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json("""
+                    {
+                        status: "KO",
+                        description: "Validation error",
+                        errors: [{
+                            code: "INPUT_NOT_VALID",
+                            description: "creditorAccountCode : must not be null"
+                        },
+                        {
+                            code: "INPUT_NOT_VALID",
+                            description: "amount : must not be null"
+                        },
+                        {
+                            code: "INPUT_NOT_VALID",
+                            description: "currency : must not be null"
+                        }
+                        ]
+                    }
+                """));
+
+        verify(bankingService, timeout(500).times(0)).createMoneyTransefer(any(TransferRequestDto.class));
+    }
+
+
     void initModel(){
         LocalDate date = LocalDate.of(2023, 1, 23);
         responseBalanceOK = new BalanceResponseDto();

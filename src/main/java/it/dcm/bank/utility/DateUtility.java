@@ -13,4 +13,9 @@ public class DateUtility {
     }
 
 
+    public static boolean validRange(LocalDate from, LocalDate to) {
+        if (!(from != null && to != null)) return false;
+        return from.isBefore(to);
+    }
+
 }
