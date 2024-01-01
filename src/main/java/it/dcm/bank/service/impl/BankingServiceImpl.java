@@ -11,6 +11,7 @@ import it.dcm.bank.mapper.BalanceMapper;
 import it.dcm.bank.mapper.TransactionMapper;
 import it.dcm.bank.mapper.TransferMapper;
 import it.dcm.bank.service.BankingService;
+import it.dcm.bank.service.TransactionHistoryService;
 import it.dcm.bank.utility.DateUtility;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ import static it.dcm.bank.exception.ExceptionTypeEnum.*;
 public class BankingServiceImpl implements BankingService {
     private static final String ACCOUNT_ID = "14537780";
     private final FabrickClient fabrickClient;
+    private final TransactionHistoryService transactionHistoryService;
     private final BalanceMapper balanceMapper;
     private final TransactionMapper transactionMapper;
     private final TransferMapper transferMapper;
@@ -58,6 +60,8 @@ public class BankingServiceImpl implements BankingService {
                 .parallelStream()
                 .map(transactionMapper::mapFromClient)
                 .toList();
+
+        this.transactionHistoryService.saveAllTransactions(transactions);
 
         transactionsResponseDto.setList(transactions);
         return transactionsResponseDto;

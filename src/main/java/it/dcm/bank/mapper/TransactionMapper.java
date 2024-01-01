@@ -2,6 +2,7 @@ package it.dcm.bank.mapper;
 
 
 
+import it.dcm.bank.entity.TransactionHistoryEntity;
 import it.dcm.bank.generated.client.fabrick.v4.dto.AccountTransactionDto;
 import it.dcm.bank.generated.dto.TransactionDto;
 import org.mapstruct.Mapper;
@@ -14,5 +15,8 @@ public interface TransactionMapper {
     @Mapping(target = "typeTransaction", source= "dto.type.value")
     TransactionDto mapFromClient(AccountTransactionDto dto);
 
+
+    @Mapping(target = "id", source= "dto.transactionId")
+    TransactionHistoryEntity toEntity(TransactionDto dto);
 
 }

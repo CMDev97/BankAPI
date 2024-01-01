@@ -17,7 +17,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
 
 import static it.dcm.bank.exception.ExceptionTypeEnum.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,13 +36,15 @@ class BankingServiceImplTest {
     private TransactionMapper transactionMapper;
     @Mock
     private TransferMapper transferMapper;
-
+    @Mock
+    private TransactionHistoryService transactionHistoryService;
     @InjectMocks
     private BankingServiceImpl bankingService;
 
     @BeforeEach
     void setUp() {
         initModel();
+        doNothing().when(transactionHistoryService).saveAllTransactions(anyList());
     }
 
     @Test
