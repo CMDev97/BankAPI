@@ -32,6 +32,27 @@ To set up the project, follow these steps:
    ```shell
    java -jar target/bank-0.0.1-SNAPSHOT.jar
 
+
+## H2 In-Memory Database
+
+This project uses the H2 Database Engine as an in-memory database for development and testing purposes. This provides a lightweight and easy-to-configure environment for database operations.
+
+### Accessing the H2 Console
+
+To access the H2 console:
+
+1. Start the application.
+2. Open your browser and go to the H2 console URL (usually `http://localhost:8080/h2`).
+3. Use the following credentials to log in:
+   - JDBC URL: `jdbc:h2:mem:BankDB` (or the specific URL configured for your project)
+   - User Name: `BANK_USER`
+   - Password: `BANK_PASSWORD`
+
+### Security Note
+
+The provided credentials are intended for use in development and test environments. Ensure not to use them in production environments or expose the H2 console on insecure networks.
+
+
 ## Using Postman with OpenAPI
 To interact with the API using Postman, follow these steps to import the OpenAPI specification:
 1. **Launch Postman**: Start postman in your machine
